@@ -55,6 +55,34 @@
         /* 旋转动画 */
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .icon-spin { animation: spin 1s linear infinite; display: inline-block; }
+
+        /* === 轮播图样式开始 === */
+        .slider-container {
+            display: flex;
+            overflow-x: auto; /* 允许横向滚动 */
+            scroll-snap-type: x mandatory; /* 强制对齐 */
+            gap: 10px; /* 图片间距 */
+            padding-bottom: 10px;
+            /* 隐藏滚动条 */
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none;  /* IE/Edge */
+        }
+        .slider-container::-webkit-scrollbar { display: none; /* Chrome/Safari */ }
+        
+        .slider-item {
+            flex: 0 0 100%; /* 让每张图占满宽度 */
+            scroll-snap-align: center; /* 停止时居中 */
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .slider-item img {
+            width: 100%;
+            height: 200px; /* 高度固定，防止参差不齐，可自己改 */
+            object-fit: cover; /* 保证图片填满不拉伸 */
+            display: block;
+        }
+        /* === 轮播图样式结束 === */
     </style>
 </head>
 <body>
@@ -67,7 +95,9 @@
     <div class="card">
         <h1>🏸 羽毛球冠军赛 (手动刷新)</h1>
 
-        <img src="banner.jpg" style="max-width:100%; height:auto; display:block; margin:15px auto; border-radius:8px;">
+       <div class="slider-container" id="slider-root"></div>
+       <p style="text-align:center; font-size:0.8rem; color:#aaa; margin-top:5px;">← 左右滑动查看更多 →</p>
+        
         <div style="background:#ff7675; padding:10px; border-radius:8px; color:white; margin-bottom:10px; display:none;" id="configBox">
             <h3>⚠️ 首次配置</h3>
             <input type="text" id="binId" placeholder="输入 JsonBin BIN ID" style="background:white; padding:5px; margin:5px 0;">
@@ -138,6 +168,9 @@
     };
 
     function init() {
+        // 1. 【新增】先生成21张轮播图
+        renderSlider();
+        
         const localConfig = localStorage.getItem('img_config');
         if(localConfig) { const c = JSON.parse(localConfig); BIN_ID = c.binId; API_KEY = c.apiKey; }
 
@@ -148,6 +181,33 @@
         // 初始化时，只拉取一次
         manualRefresh(); 
     }
+
+    // 👇👇👇【新增】自动生成21张图的函数 👇👇👇
+    function renderSlider() {
+        const container = document.getElementById('slider-root');
+        let html = '';
+        
+        // 🔄 这里的 21 代表你有21张图
+        // 如果以后变成30张，把 21 改成 30 就行了
+        for(let i=1; i<=22; i++) {
+            html += `
+            <div class="slider-item">
+                <img src="${i}.jpg" alt="选手${i}" loading="lazy">
+                <div class="slide-info">
+                    <div class="info-row">
+                        <span class="fixed-label">姓名：</span>
+                        <input type="text" id="slide-name-${i}" class="slide-input" placeholder="输入姓名" oninput="handleInput()">
+                    </div>
+                    <div class="info-row">
+                        <span class="fixed-label">口号：</span>
+                        <input type="text" id="slide-slogan-${i}" class="slide-input" placeholder="输入口号" oninput="handleInput()">
+                    </div>
+                </div>
+            </div>`;
+        }
+        container.innerHTML = html;
+    }
+    // 👆👆👆 新增结束 👆👆👆
 
     function saveConfig() {
         const bid = document.getElementById('binId').value;
@@ -322,4 +382,5 @@
 </script>
 </body>
 </html>
+
 
