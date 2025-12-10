@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>羽毛球冠军赛 (手动刷新版)</title>
+    <title>羽毛球冠军赛</title>
     <style>
         :root {
             --primary: #00b894; --primary-dark: #00a884; --accent: #0984e3; --gold: #fdcb6e;
@@ -18,8 +18,68 @@
         /* 输入框样式 */
         input { border: none; background: transparent; width: 100%; outline: none; text-align: center; }
         .input-group { display: flex; margin-bottom: 5px; background: #eee; padding: 5px; border-radius: 4px; }
-        .match-row { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 8px; margin-bottom: 5px; border-radius: 6px; }
-        .score-input { width: 40px; text-align: center; font-weight: bold; font-size: 1.1em; border: 1px solid #ccc; border-radius: 4px; background: white; }
+        .input-group label { min-width: 64px; white-space: nowrap; font-weight: 600; text-align: center; }
+        /* 小组赛比赛行样式：比分居中，两侧队名 */
+        .match-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #fff;
+            padding: 8px;
+            margin-bottom: 5px;
+            border-radius: 6px;
+            gap: 15px;
+        }
+        /* 队伍名样式 - 保持两侧 */
+        .team-name {
+            flex: 1;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        .team-name:first-child { text-align: right; padding-right: 10px; }
+        .team-name:last-child { text-align: left; padding-left: 10px; }
+        /* 比分区域样式 */
+        .score-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 120px;
+            justify-content: center;
+        }
+        .score-separator {
+            font-weight: bold;
+            color: #333;
+        }
+        .score-input {
+            width: 40px; 
+            text-align: center; 
+            font-weight: bold; 
+            font-size: 1.1em; 
+            border: 1px solid #ccc; 
+            border-radius: 4px; 
+            background: white;
+            appearance: textfield;
+            /* 隐藏数字输入框的上下箭头（可选） */
+            -moz-appearance: textfield;
+        }
+        /* 对于支持WebKit的浏览器 */
+        .score-input::-webkit-outer-spin-button,
+        .score-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        /* 添加焦点时的样式 */
+        .score-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(0, 184, 148, 0.2);
+            outline: none;
+        }
+        /* 输入无效值时的样式 */
+        .score-input:invalid {
+            border-color: #ff7675;
+            background-color: #ffeaea;
+        }
         
         /* 表格与高亮 */
         table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
@@ -31,10 +91,14 @@
         .bracket-container { overflow-x: auto; padding: 10px 0; }
         .bracket-flex { display: flex; justify-content: space-between; min-width: 900px; }
         .round-column { display: flex; flex-direction: column; justify-content: space-around; flex: 1; padding: 0 10px; }
-        .match-card { background: white; border: 1px solid #dfe6e9; border-radius: 8px; padding: 10px; margin: 10px 0; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .match-card { background: white; border: 1px solid #dfe6e9; border-radius: 8px; padding: 10px; margin: 10px 0; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: border-color 0.2s, background 0.2s, opacity 0.2s; }
         .round-sf .match-card { margin: 60px 0; border-color: var(--accent); border-width: 2px; }
         .round-final .match-card { border-color: var(--gold); border-width: 3px; transform: scale(1.1); }
         .team-slot { display: flex; justify-content: space-between; padding: 5px 0; font-size: 0.9rem; align-items: center;}
+        /* 状态提示 */
+        .match-card.completed { border-left: 4px solid var(--primary); background: #f8fffe; }
+        .match-card.in-progress { border-left: 4px solid var(--accent); }
+        .match-card.not-started { opacity: 0.7; }
         
         .setup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         @media(max-width:768px){ .setup-grid{grid-template-columns: 1fr;} }
@@ -107,7 +171,38 @@
             .slider-item img { max-height: 40vh; }
         }
 
-        
+        /* 轮播姓名/口号输入区样式 */
+        .slide-info {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.65) 80%);
+            color: #fff;
+            padding: 12px 14px;
+            box-sizing: border-box;
+        }
+        .slider-item { position: relative; }
+        .slide-info .info-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+        .slide-info .fixed-label { min-width: 48px; font-weight: 600; letter-spacing: 1px; }
+        .slide-input {
+            flex: 1;
+            background: rgba(255,255,255,0.85);
+            border-radius: 6px;
+            padding: 6px 10px;
+            border: 1px solid rgba(255,255,255,0.4);
+            color: #2d3436;
+            font-size: 0.95rem;
+            text-align: left;
+        }
+        .slide-input::placeholder { color: #888; }
+        @media (max-width: 768px) {
+            .slide-info { padding: 10px; }
+            .slide-info .info-row { flex-direction: column; align-items: flex-start; }
+            .slide-info .fixed-label { min-width: auto; }
+            .slide-input { width: 100%; text-align: left; }
+        }
+
         /* === 轮播图样式结束 === */
         
     </style>
@@ -120,7 +215,7 @@
 
 <div class="container">
     <div class="card">
-        <h1>🏸 羽毛球冠军赛 (手动刷新)</h1>
+        <h1>🏸 羽毛球冠军赛</h1>
 
        <div class="slider-container" id="slider-root"></div>
        <p style="text-align:center; font-size:0.8rem; color:#aaa; margin-top:5px;">← 左右滑动查看更多 →</p>
@@ -158,19 +253,19 @@
             <div class="bracket-flex">
                 <div class="round-column round-qf">
                     <div style="text-align:center;font-weight:bold;margin-bottom:10px;color:#aaa">1/4 决赛</div>
-                    <div class="match-card"><div class="team-slot"><span id="qf1-p1">A1</span><input type="number" class="score-input" id="s-qf1-1" oninput="handleInput()"></div><div class="team-slot"><span id="qf1-p2">B4</span><input type="number" class="score-input" id="s-qf1-2" oninput="handleInput()"></div></div>
-                    <div class="match-card"><div class="team-slot"><span id="qf2-p1">B2</span><input type="number" class="score-input" id="s-qf2-1" oninput="handleInput()"></div><div class="team-slot"><span id="qf2-p2">A3</span><input type="number" class="score-input" id="s-qf2-2" oninput="handleInput()"></div></div>
-                    <div class="match-card"><div class="team-slot"><span id="qf3-p1">B1</span><input type="number" class="score-input" id="s-qf3-1" oninput="handleInput()"></div><div class="team-slot"><span id="qf3-p2">A4</span><input type="number" class="score-input" id="s-qf3-2" oninput="handleInput()"></div></div>
-                    <div class="match-card"><div class="team-slot"><span id="qf4-p1">A2</span><input type="number" class="score-input" id="s-qf4-1" oninput="handleInput()"></div><div class="team-slot"><span id="qf4-p2">B3</span><input type="number" class="score-input" id="s-qf4-2" oninput="handleInput()"></div></div>
+                    <div class="match-card" id="card-qf1"><div class="team-slot"><span id="qf1-p1">A1</span><input type="number" class="score-input" id="s-qf1-1" value="0" min="0" max="30" oninput="handleInput()"></div><div class="team-slot"><span id="qf1-p2">B4</span><input type="number" class="score-input" id="s-qf1-2" value="0" min="0" max="30" oninput="handleInput()"></div></div>
+                    <div class="match-card" id="card-qf2"><div class="team-slot"><span id="qf2-p1">B2</span><input type="number" class="score-input" id="s-qf2-1" value="0" min="0" max="30" oninput="handleInput()"></div><div class="team-slot"><span id="qf2-p2">A3</span><input type="number" class="score-input" id="s-qf2-2" value="0" min="0" max="30" oninput="handleInput()"></div></div>
+                    <div class="match-card" id="card-qf3"><div class="team-slot"><span id="qf3-p1">B1</span><input type="number" class="score-input" id="s-qf3-1" value="0" min="0" max="30" oninput="handleInput()"></div><div class="team-slot"><span id="qf3-p2">A4</span><input type="number" class="score-input" id="s-qf3-2" value="0" min="0" max="30" oninput="handleInput()"></div></div>
+                    <div class="match-card" id="card-qf4"><div class="team-slot"><span id="qf4-p1">A2</span><input type="number" class="score-input" id="s-qf4-1" value="0" min="0" max="30" oninput="handleInput()"></div><div class="team-slot"><span id="qf4-p2">B3</span><input type="number" class="score-input" id="s-qf4-2" value="0" min="0" max="30" oninput="handleInput()"></div></div>
                 </div>
                 <div class="round-column round-sf">
                     <div style="text-align:center;font-weight:bold;margin-bottom:10px;color:#aaa">半决赛</div>
-                    <div class="match-card"><div class="team-slot"><span id="sf1-p1">TBD</span><input type="number" class="score-input" id="s-sf1-1" oninput="handleInput()"></div><div class="team-slot"><span id="sf1-p2">TBD</span><input type="number" class="score-input" id="s-sf1-2" oninput="handleInput()"></div></div>
-                    <div class="match-card"><div class="team-slot"><span id="sf2-p1">TBD</span><input type="number" class="score-input" id="s-sf2-1" oninput="handleInput()"></div><div class="team-slot"><span id="sf2-p2">TBD</span><input type="number" class="score-input" id="s-sf2-2" oninput="handleInput()"></div></div>
+                    <div class="match-card" id="card-sf1"><div class="team-slot"><span id="sf1-p1">TBD</span><input type="number" class="score-input" id="s-sf1-1" value="0" min="0" max="30" oninput="handleInput()"></div><div class="team-slot"><span id="sf1-p2">TBD</span><input type="number" class="score-input" id="s-sf1-2" value="0" min="0" max="30" oninput="handleInput()"></div></div>
+                    <div class="match-card" id="card-sf2"><div class="team-slot"><span id="sf2-p1">TBD</span><input type="number" class="score-input" id="s-sf2-1" value="0" min="0" max="30" oninput="handleInput()"></div><div class="team-slot"><span id="sf2-p2">TBD</span><input type="number" class="score-input" id="s-sf2-2" value="0" min="0" max="30" oninput="handleInput()"></div></div>
                 </div>
                 <div class="round-column round-final">
                     <div style="text-align:center;font-weight:bold;margin-bottom:10px;color:var(--gold)">👑 决赛</div>
-                    <div class="match-card"><div class="team-slot"><span id="final-p1">TBD</span><input type="number" class="score-input" id="s-final-1" oninput="handleInput()"></div><div class="team-slot"><span id="final-p2">TBD</span><input type="number" class="score-input" id="s-final-2" oninput="handleInput()"></div></div>
+                    <div class="match-card" id="card-final"><div class="team-slot"><span id="final-p1">TBD</span><input type="number" class="score-input" id="s-final-1" value="0" min="0" max="30" oninput="handleInput()"></div><div class="team-slot"><span id="final-p2">TBD</span><input type="number" class="score-input" id="s-final-2" value="0" min="0" max="30" oninput="handleInput()"></div></div>
                     <div style="text-align:center;margin-top:15px;font-weight:bold;font-size:1.2rem;color:var(--primary)" id="champion-name">???</div>
                 </div>
             </div>
@@ -244,8 +339,9 @@
 
     function createInputs() {
         let htmlA='', htmlB='';
-        for(let i=1; i<=5; i++) htmlA += `<div class="input-group"><label>A${i}</label><input id="t${i}" value="队伍${i}" oninput="handleInput()"></div>`;
-        for(let i=6; i<=10; i++) htmlB += `<div class="input-group"><label>B${i-5}</label><input id="t${i}" value="队伍${i}" oninput="handleInput()"></div>`;
+        const groupLabels = ['第一组','第二组','第三组','第四组','第五组','第一组','第二组','第三组','第四组','第五组'];
+        for(let i=1; i<=5; i++) htmlA += `<div class="input-group"><label>${groupLabels[i-1]}</label><input id="t${i}" value="队伍${i}" oninput="handleInput()"></div>`;
+        for(let i=6; i<=10; i++) htmlB += `<div class="input-group"><label>${groupLabels[i-1]}</label><input id="t${i}" value="队伍${i}" oninput="handleInput()"></div>`;
         document.getElementById('namesA').innerHTML += htmlA;
         document.getElementById('namesB').innerHTML += htmlB;
 
@@ -255,12 +351,13 @@
                 const d = document.createElement('div');
                 d.className = 'match-row';
                 d.innerHTML = `
-                    <span id="name-${group}-${idx}-1">T</span>
-                    <div>
-                        <input type="number" class="score-input" id="s-${group}-${idx}-1" oninput="handleInput()"> : 
-                        <input type="number" class="score-input" id="s-${group}-${idx}-2" oninput="handleInput()">
+                    <span class="team-name" id="name-${group}-${idx}-1">T</span>
+                    <div class="score-container">
+                        <input type="number" class="score-input" id="s-${group}-${idx}-1" value="0" min="0" max="30" oninput="handleInput()">
+                        <span class="score-separator">:</span>
+                        <input type="number" class="score-input" id="s-${group}-${idx}-2" value="0" min="0" max="30" oninput="handleInput()">
                     </div>
-                    <span id="name-${group}-${idx}-2">T</span>
+                    <span class="team-name" id="name-${group}-${idx}-2">T</span>
                 `;
                 container.appendChild(d);
             });
@@ -316,8 +413,21 @@
     }
 
     function collectDataFromUI() {
-        const data = { names: {}, scores: {} };
+        const data = { names: {}, scores: {}, slides: {} };
+        // 分组队伍名称
         for(let i=1; i<=10; i++) { const el = document.getElementById('t'+i); if(el) data.names['t'+i] = el.value; }
+        // 轮播姓名和口号
+        for(let i=1; i<=22; i++) {
+            const nameEl = document.getElementById(`slide-name-${i}`);
+            const sloganEl = document.getElementById(`slide-slogan-${i}`);
+            if(nameEl || sloganEl) {
+                data.slides['slide-'+i] = {
+                    name: nameEl ? nameEl.value : '',
+                    slogan: sloganEl ? sloganEl.value : ''
+                };
+            }
+        }
+        // 比分
         document.querySelectorAll('.score-input').forEach(el => { if(el.value) data.scores[el.id] = el.value; });
         return data;
     }
@@ -326,17 +436,35 @@
         if(!data) return;
         if(data.names) for(let k in data.names) { const el = document.getElementById(k); if(el) el.value = data.names[k]; }
         if(data.scores) {
-            document.querySelectorAll('.score-input').forEach(el => el.value = ''); 
+            // 只回填有数据的输入框，未上传的数据保留默认值0
             for(let k in data.scores) { const el = document.getElementById(k); if(el) el.value = data.scores[k]; }
+        }
+        // 回填轮播姓名/口号
+        if(data.slides) {
+            for(let i=1; i<=22; i++) {
+                const info = data.slides['slide-'+i];
+                if(!info) continue;
+                const nameEl = document.getElementById(`slide-name-${i}`);
+                const sloganEl = document.getElementById(`slide-slogan-${i}`);
+                if(nameEl) nameEl.value = info.name || '';
+                if(sloganEl) sloganEl.value = info.slogan || '';
+            }
         }
     }
 
     let debounceTimer;
     function handleInput() {
+        // 验证所有分数输入框，限制在 0-30
+        document.querySelectorAll('.score-input').forEach(input => {
+            const value = parseInt(input.value) || 0;
+            if(value < 0) input.value = 0;
+            if(value > 30) input.value = 30;
+        });
+
         updateAll(); // 立即本地计算
         clearTimeout(debounceTimer);
-        // 输入停止1秒后自动保存到云端
-        debounceTimer = setTimeout(() => { pushData(); }, 1000);
+        // 输入停止2秒后自动保存到云端
+        debounceTimer = setTimeout(() => { pushData(); }, 2000);
     }
 
     function updateAll() {
@@ -356,7 +484,9 @@
                     const v1 = parseInt(s1El.value), v2 = parseInt(s2El.value);
                     teams[m[0]].score += v1; teams[m[1]].score += v2;
                     teams[m[0]].net += (v1-v2); teams[m[1]].net += (v2-v1);
-                    if(v1>v2) teams[m[0]].wins++; else if(v2>v1) teams[m[1]].wins++;
+                    // 21分制：至少21分且领先2分才算胜
+                    if(v1 >= 21 && v1 > v2 && (v1 - v2 >= 2)) teams[m[0]].wins++;
+                    else if(v2 >= 21 && v2 > v1 && (v2 - v1 >= 2)) teams[m[1]].wins++;
                 }
             });
             updateTable(group);
@@ -371,7 +501,8 @@
         tbody.innerHTML = '';
         list.forEach((t, i) => {
             const cls = i<4 ? 'rank-q' : 'rank-out';
-            tbody.innerHTML += `<tr class="${cls}"><td>${i+1}</td><td>${t.name}</td><td>${t.wins}</td><td>${t.net}</td><td>${t.score}</td></tr>`;
+            const rankLabel = `${group}${i+1}`; // A组显示A1、A2，B组显示B1、B2
+            tbody.innerHTML += `<tr class="${cls}"><td>${rankLabel}</td><td>${t.name}</td><td>${t.wins}</td><td>${t.net}</td><td>${t.score}</td></tr>`;
         });
 
         if(group === 'A') {
@@ -382,33 +513,85 @@
         updateBracket();
     }
 
-    function fillName(id, team) { if(document.getElementById(id)) document.getElementById(id).innerText = team.name; }
+    function fillName(id, team) {
+        const el = document.getElementById(id);
+        if(!el || !team) return;
+        const slot = getTeamRankLabel(team);
+        el.innerText = slot ? `${slot} ${team.name}` : team.name;
+    }
+
+    // 根据当前积分榜排名返回标签（A1/A2...或B1/B2...）
+    function getTeamRankLabel(team) {
+        if(!team || !team.id) return '';
+        const num = parseInt(team.id.replace('t',''), 10);
+        if(isNaN(num)) return '';
+        const group = num <= 5 ? 'A' : 'B';
+
+        // 取出该组全部队伍并按规则排序
+        const groupTeams = (group === 'A'
+            ? ['t1','t2','t3','t4','t5']
+            : ['t6','t7','t8','t9','t10']
+        ).map(id => teams[id]);
+
+        groupTeams.sort((a,b) => b.wins - a.wins || b.net - a.net || b.score - a.score);
+
+        const rankIndex = groupTeams.findIndex(t => t.id === team.id);
+        return rankIndex !== -1 ? `${group}${rankIndex+1}` : '';
+    }
+
+    function determineWinner(score1, score2) {
+        if (score1 >= 21 && score1 > score2 && (score1 - score2 >= 2)) return 'p1';
+        if (score2 >= 21 && score2 > score1 && (score2 - score1 >= 2)) return 'p2';
+        return '';
+    }
+
+    function updateMatchStatus(matchId, score1, score2) {
+        const matchCard = document.getElementById(matchId);
+        if(!matchCard) return;
+        const winner = determineWinner(score1, score2);
+        matchCard.classList.remove('completed', 'in-progress', 'not-started');
+        if (winner) {
+            matchCard.classList.add('completed');
+        } else if (score1 > 0 || score2 > 0) {
+            matchCard.classList.add('in-progress');
+        } else {
+            matchCard.classList.add('not-started');
+        }
+    }
 
     function updateBracket() {
         const advance = (curr, next) => {
             const p1 = document.getElementById(curr+'-p1').innerText;
             const p2 = document.getElementById(curr+'-p2').innerText;
-            const s1 = document.getElementById('s-'+curr+'-1').value;
-            const s2 = document.getElementById('s-'+curr+'-2').value;
+            const s1 = parseInt(document.getElementById('s-'+curr+'-1').value) || 0;
+            const s2 = parseInt(document.getElementById('s-'+curr+'-2').value) || 0;
             const target = document.getElementById(next);
-            if(s1 && s2) target.innerText = parseInt(s1)>parseInt(s2) ? p1 : p2;
-            else target.innerText = "TBD";
+            
+            // 21分制：至少21分且领先2分才算胜
+            let winner = "";
+            if (s1 >= 21 && s1 > s2 && (s1 - s2 >= 2)) winner = p1;
+            else if (s2 >= 21 && s2 > s1 && (s2 - s1 >= 2)) winner = p2;
+
+            target.innerText = winner || "TBD";
+            updateMatchStatus(`card-${curr}`, s1, s2);
         };
         advance('qf1', 'sf1-p1'); advance('qf2', 'sf1-p2'); advance('qf3', 'sf2-p1'); advance('qf4', 'sf2-p2');
         advance('sf1', 'final-p1'); advance('sf2', 'final-p2');
         
         const f1 = document.getElementById('final-p1').innerText;
         const f2 = document.getElementById('final-p2').innerText;
-        const fs1 = document.getElementById('s-final-1').value;
-        const fs2 = document.getElementById('s-final-2').value;
-        if(fs1 && fs2) document.getElementById('champion-name').innerText = "🥇 " + (parseInt(fs1)>parseInt(fs2)?f1:f2);
-        else document.getElementById('champion-name').innerText = "???";
+        const fs1 = parseInt(document.getElementById('s-final-1').value) || 0;
+        const fs2 = parseInt(document.getElementById('s-final-2').value) || 0;
+
+        let champion = "???";
+        if (fs1 >= 21 && fs1 > fs2 && (fs1 - fs2 >= 2)) champion = f1;
+        else if (fs2 >= 21 && fs2 > fs1 && (fs2 - fs1 >= 2)) champion = f2;
+
+        document.getElementById('champion-name').innerText = champion === "???" ? "???" : "🥇 " + champion;
+        updateMatchStatus('card-final', fs1, fs2);
     }
 
     window.onload = init;
 </script>
 </body>
 </html>
-
-
-
