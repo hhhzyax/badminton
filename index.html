@@ -3,221 +3,278 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>羽毛球赛程 (自动保存版)</title>
+    <title>羽毛球冠军赛 (云同步完整版)</title>
     <style>
-        /* --- 样式保持不变 --- */
         :root {
             --primary: #00b894; --primary-dark: #00a884; --accent: #0984e3; --gold: #fdcb6e;
             --bg-gradient: linear-gradient(135deg, #81ecec 0%, #55efc4 100%);
-            --card-bg: rgba(255, 255, 255, 0.95); --text-main: #2d3436; --text-light: #636e72;
-            --border-radius: 12px;
+            --card-bg: rgba(255, 255, 255, 0.95); --text-main: #2d3436;
         }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg-gradient); color: var(--text-main); padding: 20px; margin: 0; }
-        .container { max-width: 1280px; margin: 0 auto; }
-        header { text-align: center; margin-bottom: 20px; color: #006266; }
-        .card { background: var(--card-bg); border-radius: var(--border-radius); padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .setup-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
-        h3 { color: var(--accent); border-bottom: 2px solid #eee; margin-top: 0; }
-        .input-group { display: flex; align-items: center; background: #f1f2f6; border-radius: 8px; padding: 5px 10px; margin-bottom: 5px; }
-        .input-group label { width: 30px; font-weight: bold; }
-        input[type="text"] { border: none; background: transparent; width: 100%; outline: none; }
-        .groups-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 20px; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin-bottom: 10px; }
-        th { background: #f8f9fa; padding: 5px; } td { text-align: center; padding: 5px; border-bottom: 1px solid #eee; }
-        .rank-q { background-color: rgba(0, 184, 148, 0.15); font-weight: bold; color: #006266; }
-        .rank-out { background-color: rgba(255, 118, 117, 0.1); color: #b2bec3; text-decoration: line-through; }
-        .match-row { display: flex; justify-content: space-between; background: #fff; border: 1px solid #eee; padding: 5px 10px; border-radius: 5px; margin-bottom: 5px; align-items: center;}
-        .score-input { width: 35px; text-align: center; border: 1px solid #ddd; border-radius: 4px; padding: 4px; font-weight: bold; }
+        .container { max-width: 1280px; margin: 0 auto; padding-bottom: 50px;}
+        .card { background: var(--card-bg); border-radius: 12px; padding: 15px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h1, h2, h3 { text-align: center; margin: 0 0 15px 0; color: #006266; }
+        
+        /* 输入框样式 */
+        input { border: none; background: transparent; width: 100%; outline: none; text-align: center; }
+        .input-group { display: flex; margin-bottom: 5px; background: #eee; padding: 5px; border-radius: 4px; }
+        .match-row { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 8px; margin-bottom: 5px; border-radius: 6px; }
+        .score-input { width: 40px; text-align: center; font-weight: bold; font-size: 1.1em; border: 1px solid #ccc; border-radius: 4px; background: white; }
+        
+        /* 表格与高亮 */
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        th, td { padding: 5px; text-align: center; border-bottom: 1px solid #ddd; }
+        .rank-q { background: #e6fffa; color: #006266; font-weight: bold; } /* 晋级区 */
+        .rank-out { background: #ffeaea; color: #b2bec3; text-decoration: line-through; } /* 淘汰区 */
+
+        /* 淘汰赛树状图 */
         .bracket-container { overflow-x: auto; padding: 10px 0; }
         .bracket-flex { display: flex; justify-content: space-between; min-width: 900px; }
         .round-column { display: flex; flex-direction: column; justify-content: space-around; flex: 1; padding: 0 10px; }
-        .match-card { background: white; border: 1px solid #dfe6e9; border-radius: 8px; padding: 10px; margin: 10px 0; position: relative; }
+        .match-card { background: white; border: 1px solid #dfe6e9; border-radius: 8px; padding: 10px; margin: 10px 0; position: relative; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .round-sf .match-card { margin: 60px 0; border-color: var(--accent); border-width: 2px; }
         .round-final .match-card { border-color: var(--gold); border-width: 3px; transform: scale(1.1); }
-        .team-slot { display: flex; justify-content: space-between; padding: 5px 0; font-size: 0.9rem; }
+        .team-slot { display: flex; justify-content: space-between; padding: 5px 0; font-size: 0.9rem; align-items: center;}
         
-        /* 清除数据按钮 */
-        .btn-reset { position: fixed; top: 20px; right: 20px; background: #ff7675; color: white; border: none; padding: 8px 15px; border-radius: 20px; cursor: pointer; opacity: 0.8; z-index: 200;}
-        .btn-reset:hover { opacity: 1; }
-        
-        @media print { .btn-reset, .setup-grid { display: none; } }
+        /* 状态条 */
+        .sync-status { position: fixed; top: 10px; right: 10px; background: rgba(0,0,0,0.7); color: white; padding: 5px 15px; border-radius: 20px; font-size: 0.8rem; z-index: 999; }
+        .setup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media(max-width:768px){ .setup-grid{grid-template-columns: 1fr;} }
     </style>
 </head>
 <body>
 
-<button class="btn-reset" onclick="resetData()">🗑️ 清空重置</button>
-
-<header>
-    <h1>🏸 羽毛球冠军赛 (自动保存版)</h1>
-</header>
+<div id="syncStatus" class="sync-status">🔵 连接中...</div>
 
 <div class="container">
     <div class="card">
-        <div class="setup-grid">
-            <div>
-                <h3>A组 (Group A)</h3>
-                <div class="input-group"><label>A1</label><input type="text" id="t1" value="队伍1" oninput="saveAndRefresh()"></div>
-                <div class="input-group"><label>A2</label><input type="text" id="t2" value="队伍2" oninput="saveAndRefresh()"></div>
-                <div class="input-group"><label>A3</label><input type="text" id="t3" value="队伍3" oninput="saveAndRefresh()"></div>
-                <div class="input-group"><label>A4</label><input type="text" id="t4" value="队伍4" oninput="saveAndRefresh()"></div>
-                <div class="input-group"><label>A5</label><input type="text" id="t5" value="队伍5" oninput="saveAndRefresh()"></div>
-            </div>
-            <div>
-                <h3>B组 (Group B)</h3>
-                <div class="input-group"><label>B1</label><input type="text" id="t6" value="队伍6" oninput="saveAndRefresh()"></div>
-                <div class="input-group"><label>B2</label><input type="text" id="t7" value="队伍7" oninput="saveAndRefresh()"></div>
-                <div class="input-group"><label>B3</label><input type="text" id="t8" value="队伍8" oninput="saveAndRefresh()"></div>
-                <div class="input-group"><label>B4</label><input type="text" id="t9" value="队伍9" oninput="saveAndRefresh()"></div>
-                <div class="input-group"><label>B5</label><input type="text" id="t10" value="队伍10" oninput="saveAndRefresh()"></div>
-            </div>
-        </div>
-    </div>
-
-    <div class="groups-container">
-        <div class="card" id="groupA">
-            <h3>A组积分榜</h3>
-            <table id="tableA"><thead><tr><th>#</th><th>队伍</th><th>胜</th><th>净</th><th>分</th></tr></thead><tbody></tbody></table>
-            <div id="matchesA"></div>
-        </div>
-        <div class="card" id="groupB">
-            <h3>B组积分榜</h3>
-            <table id="tableB"><thead><tr><th>#</th><th>队伍</th><th>胜</th><th>净</th><th>分</th></tr></thead><tbody></tbody></table>
-            <div id="matchesB"></div>
+        <h1>🏸 羽毛球冠军赛 (云同步)</h1>
+        <p style="text-align:center; font-size:0.8rem; color:#666;">10进8淘汰制 · 自动同步</p>
+        
+        <div style="background:#ff7675; padding:10px; border-radius:8px; color:white; margin-bottom:10px; display:none;" id="configBox">
+            <h3>⚠️ 首次配置</h3>
+            <input type="text" id="binId" placeholder="输入 JsonBin BIN ID" style="background:white; padding:5px; margin:5px 0;">
+            <input type="text" id="apiKey" placeholder="输入 JsonBin API Key" style="background:white; padding:5px; margin:5px 0;">
+            <button onclick="saveConfig()">保存配置</button>
         </div>
     </div>
 
     <div class="card">
-        <h2 style="text-align:center;margin:0;">🏆 淘汰赛</h2>
+        <div class="setup-grid">
+            <div id="namesA"><h3>A组名单</h3></div>
+            <div id="namesB"><h3>B组名单</h3></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>🅰️ A组赛况 (前4晋级)</h3>
+        <table id="tableA"><thead><tr><th>#</th><th>队</th><th>胜</th><th>净</th><th>分</th></tr></thead><tbody></tbody></table>
+        <div id="matchesA" style="margin-top:10px;"></div>
+    </div>
+    
+    <div class="card">
+        <h3>🅱️ B组赛况 (前4晋级)</h3>
+        <table id="tableB"><thead><tr><th>#</th><th>队</th><th>胜</th><th>净</th><th>分</th></tr></thead><tbody></tbody></table>
+        <div id="matchesB" style="margin-top:10px;"></div>
+    </div>
+
+    <div class="card">
+        <h2>🏆 淘汰赛 (8强 -> 冠军)</h2>
         <div class="bracket-container">
             <div class="bracket-flex">
+                
                 <div class="round-column round-qf">
-                    <div style="text-align:center;font-weight:bold;margin-bottom:10px;">8强</div>
-                    <div class="match-card"><div class="team-slot"><span id="qf1-p1">A1</span><input type="number" class="score-input" id="s-qf1-1" oninput="saveAndRefresh()"></div><div class="team-slot"><span id="qf1-p2">B4</span><input type="number" class="score-input" id="s-qf1-2" oninput="saveAndRefresh()"></div></div>
-                    <div class="match-card"><div class="team-slot"><span id="qf2-p1">B2</span><input type="number" class="score-input" id="s-qf2-1" oninput="saveAndRefresh()"></div><div class="team-slot"><span id="qf2-p2">A3</span><input type="number" class="score-input" id="s-qf2-2" oninput="saveAndRefresh()"></div></div>
-                    <div class="match-card"><div class="team-slot"><span id="qf3-p1">B1</span><input type="number" class="score-input" id="s-qf3-1" oninput="saveAndRefresh()"></div><div class="team-slot"><span id="qf3-p2">A4</span><input type="number" class="score-input" id="s-qf3-2" oninput="saveAndRefresh()"></div></div>
-                    <div class="match-card"><div class="team-slot"><span id="qf4-p1">A2</span><input type="number" class="score-input" id="s-qf4-1" oninput="saveAndRefresh()"></div><div class="team-slot"><span id="qf4-p2">B3</span><input type="number" class="score-input" id="s-qf4-2" oninput="saveAndRefresh()"></div></div>
+                    <div style="text-align:center;font-weight:bold;margin-bottom:10px;color:#aaa">1/4 决赛</div>
+                    
+                    <div class="match-card">
+                        <div style="font-size:0.7rem;color:#999">QF1</div>
+                        <div class="team-slot"><span id="qf1-p1">A1</span><input type="number" class="score-input" id="s-qf1-1" oninput="handleInput()"></div>
+                        <div class="team-slot"><span id="qf1-p2">B4</span><input type="number" class="score-input" id="s-qf1-2" oninput="handleInput()"></div>
+                    </div>
+                    <div class="match-card">
+                        <div style="font-size:0.7rem;color:#999">QF2</div>
+                        <div class="team-slot"><span id="qf2-p1">B2</span><input type="number" class="score-input" id="s-qf2-1" oninput="handleInput()"></div>
+                        <div class="team-slot"><span id="qf2-p2">A3</span><input type="number" class="score-input" id="s-qf2-2" oninput="handleInput()"></div>
+                    </div>
+                    <div class="match-card">
+                        <div style="font-size:0.7rem;color:#999">QF3</div>
+                        <div class="team-slot"><span id="qf3-p1">B1</span><input type="number" class="score-input" id="s-qf3-1" oninput="handleInput()"></div>
+                        <div class="team-slot"><span id="qf3-p2">A4</span><input type="number" class="score-input" id="s-qf3-2" oninput="handleInput()"></div>
+                    </div>
+                    <div class="match-card">
+                        <div style="font-size:0.7rem;color:#999">QF4</div>
+                        <div class="team-slot"><span id="qf4-p1">A2</span><input type="number" class="score-input" id="s-qf4-1" oninput="handleInput()"></div>
+                        <div class="team-slot"><span id="qf4-p2">B3</span><input type="number" class="score-input" id="s-qf4-2" oninput="handleInput()"></div>
+                    </div>
                 </div>
+
                 <div class="round-column round-sf">
-                    <div style="text-align:center;font-weight:bold;margin-bottom:10px;">半决赛</div>
-                    <div class="match-card"><div class="team-slot"><span id="sf1-p1">TBD</span><input type="number" class="score-input" id="s-sf1-1" oninput="saveAndRefresh()"></div><div class="team-slot"><span id="sf1-p2">TBD</span><input type="number" class="score-input" id="s-sf1-2" oninput="saveAndRefresh()"></div></div>
-                    <div class="match-card"><div class="team-slot"><span id="sf2-p1">TBD</span><input type="number" class="score-input" id="s-sf2-1" oninput="saveAndRefresh()"></div><div class="team-slot"><span id="sf2-p2">TBD</span><input type="number" class="score-input" id="s-sf2-2" oninput="saveAndRefresh()"></div></div>
+                    <div style="text-align:center;font-weight:bold;margin-bottom:10px;color:#aaa">半决赛</div>
+                    <div class="match-card">
+                        <div class="team-slot"><span id="sf1-p1">TBD</span><input type="number" class="score-input" id="s-sf1-1" oninput="handleInput()"></div>
+                        <div class="team-slot"><span id="sf1-p2">TBD</span><input type="number" class="score-input" id="s-sf1-2" oninput="handleInput()"></div>
+                    </div>
+                    <div class="match-card">
+                        <div class="team-slot"><span id="sf2-p1">TBD</span><input type="number" class="score-input" id="s-sf2-1" oninput="handleInput()"></div>
+                        <div class="team-slot"><span id="sf2-p2">TBD</span><input type="number" class="score-input" id="s-sf2-2" oninput="handleInput()"></div>
+                    </div>
                 </div>
+
                 <div class="round-column round-final">
-                    <div style="text-align:center;font-weight:bold;margin-bottom:10px;color:var(--gold)">决赛</div>
-                    <div class="match-card"><div class="team-slot"><span id="final-p1">TBD</span><input type="number" class="score-input" id="s-final-1" oninput="saveAndRefresh()"></div><div class="team-slot"><span id="final-p2">TBD</span><input type="number" class="score-input" id="s-final-2" oninput="saveAndRefresh()"></div></div>
-                    <div style="text-align:center;margin-top:10px;font-weight:bold;" id="champion-name">???</div>
+                    <div style="text-align:center;font-weight:bold;margin-bottom:10px;color:var(--gold)">👑 决赛</div>
+                    <div class="match-card">
+                        <div class="team-slot"><span id="final-p1">TBD</span><input type="number" class="score-input" id="s-final-1" oninput="handleInput()"></div>
+                        <div class="team-slot"><span id="final-p2">TBD</span><input type="number" class="score-input" id="s-final-2" oninput="handleInput()"></div>
+                    </div>
+                    <div style="text-align:center;margin-top:15px;font-weight:bold;font-size:1.2rem;color:var(--primary)" id="champion-name">???</div>
                 </div>
+
             </div>
         </div>
     </div>
 </div>
 
 <script>
+    // ==========================================
+    // 🔴 在这里填入你的 JsonBin 信息
+    // ==========================================
+    let BIN_ID = '69396050ae596e708f9011c8'; 
+    let API_KEY = '$2a$10$HJ5TU53qmIgDkP2Zv/o68OJ5M0Bo91u8BQt51q5hAv7kDh2On5Exq'; 
+    // ==========================================
+
     let teams = {};
+    let lastRemoteData = null;
+    let isEditing = false; // 正在输入时不强制刷新
+
+    // 小组赛对阵逻辑
     const schedules = {
         'A': [['t1','t2'], ['t3','t4'], ['t1','t5'], ['t2','t3'], ['t4','t5'], ['t1','t3'], ['t2','t4'], ['t3','t5'], ['t1','t4'], ['t2','t5']],
         'B': [['t6','t7'], ['t8','t9'], ['t6','t10'], ['t7','t8'], ['t9','t10'], ['t6','t8'], ['t7','t9'], ['t8','t10'], ['t6','t9'], ['t7','t10']]
     };
 
     function init() {
-        // 1. 初始化空数据
-        for(let i=1; i<=10; i++) teams['t'+i] = { id: 't'+i, name: '队伍'+i, wins:0, loss:0, net:0, score:0 };
-        renderMatchInputs();
+        // 读取本地缓存的配置（如果有）
+        const localConfig = localStorage.getItem('img_config');
+        if(localConfig) { const c = JSON.parse(localConfig); BIN_ID = c.binId; API_KEY = c.apiKey; }
+
+        if(!BIN_ID || !API_KEY) { document.getElementById('configBox').style.display = 'block'; return; }
+
+        createInputs();
         
-        // 2. 尝试从 LocalStorage 加载数据
-        loadData();
+        // 启动同步：立即拉取一次，然后每3秒拉一次
+        fetchData(); 
+        setInterval(() => { if(!isEditing) fetchData(); }, 3000);
     }
 
-    function renderMatchInputs() {
+    function saveConfig() {
+        const bid = document.getElementById('binId').value;
+        const key = document.getElementById('apiKey').value;
+        if(bid && key) { localStorage.setItem('img_config', JSON.stringify({binId: bid, apiKey: key})); location.reload(); }
+    }
+
+    function createInputs() {
+        let htmlA='', htmlB='';
+        for(let i=1; i<=5; i++) htmlA += `<div class="input-group"><label>A${i}</label><input id="t${i}" value="队伍${i}" oninput="handleInput()"></div>`;
+        for(let i=6; i<=10; i++) htmlB += `<div class="input-group"><label>B${i-5}</label><input id="t${i}" value="队伍${i}" oninput="handleInput()"></div>`;
+        document.getElementById('namesA').innerHTML += htmlA;
+        document.getElementById('namesB').innerHTML += htmlB;
+
         ['A', 'B'].forEach(group => {
             const container = document.getElementById('matches'+group);
-            container.innerHTML = '';
-            schedules[group].forEach((match, index) => {
-                const div = document.createElement('div');
-                div.className = 'match-row';
-                // 给输入框加唯一的ID以便保存： score-A-0-0 (A组-第0场-第0个输入框)
-                div.innerHTML = `
-                    <span class="team-name" data-id="${match[0]}">T</span>
+            schedules[group].forEach((m, idx) => {
+                const d = document.createElement('div');
+                d.className = 'match-row';
+                d.innerHTML = `
+                    <span id="name-${group}-${idx}-1">T</span>
                     <div>
-                        <input type="number" class="score-input group-score" id="score-${group}-${index}-1" data-g="${group}" data-m="${index}" data-p="0" oninput="saveAndRefresh()"> : 
-                        <input type="number" class="score-input group-score" id="score-${group}-${index}-2" data-g="${group}" data-m="${index}" data-p="1" oninput="saveAndRefresh()">
+                        <input type="number" class="score-input" id="s-${group}-${idx}-1" oninput="handleInput()" onfocus="isEditing=true" onblur="isEditing=false"> : 
+                        <input type="number" class="score-input" id="s-${group}-${idx}-2" oninput="handleInput()" onfocus="isEditing=true" onblur="isEditing=false">
                     </div>
-                    <span class="team-name" data-id="${match[1]}">T</span>
+                    <span id="name-${group}-${idx}-2">T</span>
                 `;
-                container.appendChild(div);
+                container.appendChild(d);
             });
         });
     }
 
-    // --- 核心：保存与读取 ---
-    function saveAndRefresh() {
-        // 1. 保存名字
-        const names = {};
-        for(let i=1; i<=10; i++) names['t'+i] = document.getElementById('t'+i).value;
-        
-        // 2. 保存所有输入框的值 (包括小组赛和淘汰赛)
-        const inputs = {};
-        document.querySelectorAll('input[type="number"]').forEach(input => {
-            inputs[input.id] = input.value;
-        });
-
-        const data = { names: names, inputs: inputs };
-        localStorage.setItem('badmintonData_v1', JSON.stringify(data));
-        
-        // 3. 执行计算
-        updateAll(); 
-    }
-
-    function loadData() {
-        const saved = localStorage.getItem('badmintonData_v1');
-        if (saved) {
-            const data = JSON.parse(saved);
-            // 恢复名字
-            if(data.names) {
-                for(let i=1; i<=10; i++) {
-                    if(document.getElementById('t'+i)) document.getElementById('t'+i).value = data.names['t'+i];
-                }
+    // --- 云同步 ---
+    async function fetchData() {
+        showStatus('🔵 同步中...');
+        try {
+            const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, { headers: { 'X-Master-Key': API_KEY } });
+            if(res.ok) {
+                const json = await res.json();
+                const data = json.record;
+                if(JSON.stringify(data) !== JSON.stringify(lastRemoteData)) {
+                    lastRemoteData = data;
+                    applyDataToUI(data);
+                    updateAll(); // 数据回来后，刷新所有计算
+                    showStatus('🟢 已更新');
+                } else { showStatus('⚪ 待机'); }
             }
-            // 恢复比分
-            if(data.inputs) {
-                for (const [id, val] of Object.entries(data.inputs)) {
-                    const el = document.getElementById(id);
-                    if(el) el.value = val;
-                }
-            }
-        }
-        updateAll();
+        } catch(e) { console.error(e); showStatus('🔴 网络错误'); }
     }
 
-    function resetData() {
-        if(confirm("确定要清空所有数据重新开始吗？")) {
-            localStorage.removeItem('badmintonData_v1');
-            location.reload();
+    async function pushData() {
+        showStatus('🟡 上传中...');
+        const data = collectDataFromUI();
+        try {
+            await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY },
+                body: JSON.stringify(data)
+            });
+            lastRemoteData = data;
+            showStatus('🟢 上传成功');
+        } catch(e) { showStatus('🔴 上传失败'); }
+    }
+
+    function collectDataFromUI() {
+        const data = { names: {}, scores: {} };
+        for(let i=1; i<=10; i++) { const el = document.getElementById('t'+i); if(el) data.names['t'+i] = el.value; }
+        document.querySelectorAll('.score-input').forEach(el => { if(el.value) data.scores[el.id] = el.value; });
+        return data;
+    }
+
+    function applyDataToUI(data) {
+        if(!data) return;
+        if(data.names) for(let k in data.names) { const el = document.getElementById(k); if(el) el.value = data.names[k]; }
+        if(data.scores) {
+            document.querySelectorAll('.score-input').forEach(el => el.value = ''); // 清空
+            for(let k in data.scores) { const el = document.getElementById(k); if(el) el.value = data.scores[k]; }
         }
     }
 
-    // --- 逻辑计算部分 (和之前类似) ---
+    let debounceTimer;
+    function handleInput() {
+        updateAll(); // 立即本地计算
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => { pushData(); isEditing = false; }, 1000);
+    }
+
+    // --- 计算逻辑 (积分 + 淘汰赛自动晋级) ---
     function updateAll() {
-        // 更新名字显示
+        // 1. 初始化队伍数据
         for(let i=1; i<=10; i++) {
-            const val = document.getElementById('t'+i).value;
-            teams['t'+i].name = val || ('队伍'+i);
-            document.querySelectorAll(`.team-name[data-id="t${i}"]`).forEach(el => el.innerText = teams['t'+i].name);
+            const nameVal = document.getElementById('t'+i).value;
+            teams['t'+i] = { id: 't'+i, name: nameVal || '队伍'+i, wins:0, net:0, score:0 };
         }
 
-        // 计算小组分
-        Object.keys(teams).forEach(k => { teams[k].wins=0; teams[k].net=0; teams[k].score=0; });
-        
+        // 2. 计算小组积分
         ['A', 'B'].forEach(group => {
-            schedules[group].forEach((match, index) => {
-                const i1 = document.getElementById(`score-${group}-${index}-1`);
-                const i2 = document.getElementById(`score-${group}-${index}-2`);
-                if(i1.value && i2.value) {
-                    const s1 = parseInt(i1.value); const s2 = parseInt(i2.value);
-                    const t1 = match[0]; const t2 = match[1];
-                    teams[t1].score += s1; teams[t2].score += s2;
-                    teams[t1].net += (s1-s2); teams[t2].net += (s2-s1);
-                    if(s1>s2) teams[t1].wins++; else if(s2>s1) teams[t2].wins++;
+            schedules[group].forEach((m, idx) => {
+                const s1El = document.getElementById(`s-${group}-${idx}-1`);
+                const s2El = document.getElementById(`s-${group}-${idx}-2`);
+                
+                // 同步名字到赛程表
+                document.getElementById(`name-${group}-${idx}-1`).innerText = teams[m[0]].name;
+                document.getElementById(`name-${group}-${idx}-2`).innerText = teams[m[1]].name;
+
+                if(s1El.value && s2El.value) {
+                    const v1 = parseInt(s1El.value), v2 = parseInt(s2El.value);
+                    teams[m[0]].score += v1; teams[m[1]].score += v2;
+                    teams[m[0]].net += (v1-v2); teams[m[1]].net += (v2-v1);
+                    if(v1>v2) teams[m[0]].wins++; else if(v2>v1) teams[m[1]].wins++;
                 }
             });
             updateTable(group);
@@ -225,21 +282,27 @@
     }
 
     function updateTable(group) {
-        const list = (group === 'A' ? ['t1','t2','t3','t4','t5'] : ['t6','t7','t8','t9','t10']).map(id=>teams[id]);
-        list.sort((a,b) => (b.wins - a.wins) || (b.net - a.net) || (b.score - a.score));
+        const list = (group==='A' ? [1,2,3,4,5] : [6,7,8,9,10]).map(i=>teams['t'+i]);
+        list.sort((a,b) => b.wins - a.wins || b.net - a.net || b.score - a.score);
         
         const tbody = document.querySelector(`#table${group} tbody`);
         tbody.innerHTML = '';
         list.forEach((t, i) => {
             const cls = i<4 ? 'rank-q' : 'rank-out';
-            tbody.innerHTML += `<tr class="${cls}"><td>${i+1}</td><td style="text-align:left">${t.name}</td><td>${t.wins}</td><td>${t.net}</td><td>${t.score}</td></tr>`;
+            tbody.innerHTML += `<tr class="${cls}"><td>${i+1}</td><td>${t.name}</td><td>${t.wins}</td><td>${t.net}</td><td>${t.score}</td></tr>`;
         });
-        
-        // 传递给淘汰赛
+
+        // 3. 将晋级者填入淘汰赛 (QF)
         if(group === 'A') {
-            fillName('qf1-p1', list[0]); fillName('qf4-p1', list[1]); fillName('qf2-p2', list[2]); fillName('qf3-p2', list[3]);
+            fillName('qf1-p1', list[0]); // A1
+            fillName('qf4-p1', list[1]); // A2
+            fillName('qf2-p2', list[2]); // A3
+            fillName('qf3-p2', list[3]); // A4
         } else {
-            fillName('qf3-p1', list[0]); fillName('qf2-p1', list[1]); fillName('qf4-p2', list[2]); fillName('qf1-p2', list[3]);
+            fillName('qf3-p1', list[0]); // B1
+            fillName('qf2-p1', list[1]); // B2
+            fillName('qf4-p2', list[2]); // B3
+            fillName('qf1-p2', list[3]); // B4
         }
         updateBracket();
     }
@@ -256,16 +319,21 @@
             if(s1 && s2) target.innerText = parseInt(s1)>parseInt(s2) ? p1 : p2;
             else target.innerText = "TBD";
         };
-        advance('qf1', 'sf1-p1'); advance('qf2', 'sf1-p2'); advance('qf3', 'sf2-p1'); advance('qf4', 'sf2-p2');
+        // 晋级路径
+        advance('qf1', 'sf1-p1'); advance('qf2', 'sf1-p2'); 
+        advance('qf3', 'sf2-p1'); advance('qf4', 'sf2-p2');
         advance('sf1', 'final-p1'); advance('sf2', 'final-p2');
         
-        // 冠军
+        // 冠军判断
         const f1 = document.getElementById('final-p1').innerText;
         const f2 = document.getElementById('final-p2').innerText;
         const fs1 = document.getElementById('s-final-1').value;
         const fs2 = document.getElementById('s-final-2').value;
         if(fs1 && fs2) document.getElementById('champion-name').innerText = "🥇 " + (parseInt(fs1)>parseInt(fs2)?f1:f2);
+        else document.getElementById('champion-name').innerText = "???";
     }
+
+    function showStatus(msg) { document.getElementById('syncStatus').innerText = msg; }
 
     window.onload = init;
 </script>
