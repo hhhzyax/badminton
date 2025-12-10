@@ -69,19 +69,44 @@
         }
         .slider-container::-webkit-scrollbar { display: none; /* Chrome/Safari */ }
         
+
+        /* slider 容器项：不裁切图片，居中显示，使用背景作为 letterbox */
         .slider-item {
-            flex: 0 0 100%; /* 让每张图占满宽度 */
-            scroll-snap-align: center; /* 停止时居中 */
+            flex: 0 0 100%;
+            scroll-snap-align: center;
             border-radius: 8px;
             overflow: hidden;
+        
+            /* 使用 flex 居中图片（防止图片上下居中出现空白） */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        
+            /* letterbox 背景色，当图片与容器宽高比不同时显示该背景 */
+            background: #f3f3f3;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        
+            /* 不固定高度，让图片用 max-height 限制；也可以改为 min-height:200px 以保证最小高度 */
+            min-height: 200px;
         }
+        
+        /* 图片完整显示（contain），不裁切、不拉伸，保持比例 */
         .slider-item img {
-            width: 100%;
-            height: 200px; /* 高度固定，防止参差不齐，可自己改 */
-            object-fit: cover; /* 保证图片填满不拉伸 */
+            max-width: 100%;
+            max-height: 60vh;        /* 限制最大高度，防止图片太高；可根据需求调整 */
+            width: auto;
+            height: auto;
+            object-fit: contain;     /* contain 保留完整图像；若想裁切改为 cover */
+            object-position: center; /* 居中对齐图片主体 */
             display: block;
         }
+        
+        /* 小屏幕优化：减少 max-height，防止占满视口 */
+        @media (max-width: 480px) {
+            .slider-item { min-height: 140px; }
+            .slider-item img { max-height: 40vh; }
+        }
+
         /* === 轮播图样式结束 === */
         
     </style>
@@ -383,6 +408,5 @@
 </script>
 </body>
 </html>
-
 
 
