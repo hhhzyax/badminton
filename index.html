@@ -228,6 +228,59 @@
         }
 
         /* === 轮播图样式结束 === */
+
+        /* --- 支持条样式新增 --- */
+        .support-container {
+            display: flex;
+            align-items: center;
+            padding: 5px 0;
+            margin-top: 5px;
+            gap: 8px; /* 按钮和条之间的间距 */
+            background: #f7f7f7;
+            border-radius: 6px;
+            border: 1px solid #eee;
+        }
+        .support-button {
+            background: #ffeaa7; /* 浅黄色/浅橘色 */
+            color: #d63031; /* 红色爱心 */
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            transition: background 0.2s;
+            line-height: 1;
+        }
+        .support-button:active {
+            background: #fdcb6e; /* 深一点的颜色 */
+        }
+        .support-count {
+            margin-left: 5px;
+            font-size: 0.85rem;
+            color: #636e72;
+        }
+        /* 比例条 */
+        .progress-bar-container {
+            flex-grow: 1; /* 占据中间所有可用空间 */
+            height: 14px;
+            background: #dfe6e9; /* 默认背景色（如果支持数为 0）*/
+            border-radius: 7px;
+            overflow: hidden; /* 确保内部条不溢出 */
+            display: flex; /* 使用 flex 布局内部条 */
+        }
+        .progress-bar-team1, .progress-bar-team2 {
+            height: 100%;
+            transition: width 0.3s ease;
+        }
+        .progress-bar-team1 {
+            background-color: var(--primary); /* 队伍1颜色 (绿色) */
+        }
+        .progress-bar-team2 {
+            background-color: var(--accent); /* 队伍2颜色 (蓝色) */
+        }
         
     </style>
 </head>
@@ -277,25 +330,242 @@
             <div class="bracket-flex">
                 <div class="round-column round-qf">
                     <div style="text-align:center;font-weight:bold;margin-bottom:10px;color:#aaa">1/4 决赛</div>
-                    <div class="match-card" id="card-qf1"><div class="team-slot"><span id="qf1-p1">A1</span><div class="score-container"><button class="score-btn minus" onclick="adjustScore('s-qf1-1', -1)">-</button><input type="number" class="score-input" id="s-qf1-1" value="0" min="0" max="30" oninput="handleInput()"><button class="score-btn" onclick="adjustScore('s-qf1-1', 1)">+</button></div></div><div class="team-slot"><span id="qf1-p2">B4</span><div class="score-container"><button class="score-btn minus" onclick="adjustScore('s-qf1-2', -1)">-</button><input type="number" class="score-input" id="s-qf1-2" value="0" min="0" max="30" oninput="handleInput()"><button class="score-btn" onclick="adjustScore('s-qf1-2', 1)">+</button></div></div></div>
-                    <div class="match-card" id="card-qf2"><div class="team-slot"><span id="qf2-p1">B2</span><div class="score-container"><button class="score-btn minus" onclick="adjustScore('s-qf2-1', -1)">-</button><input type="number" class="score-input" id="s-qf2-1" value="0" min="0" max="30" oninput="handleInput()"><button class="score-btn" onclick="adjustScore('s-qf2-1', 1)">+</button></div></div><div class="team-slot"><span id="qf2-p2">A3</span><div class="score-container"><button class="score-btn minus" onclick="adjustScore('s-qf2-2', -1)">-</button><input type="number" class="score-input" id="s-qf2-2" value="0" min="0" max="30" oninput="handleInput()"><button class="score-btn" onclick="adjustScore('s-qf2-2', 1)">+</button></div></div></div>
-                    <div class="match-card" id="card-qf3"><div class="team-slot"><span id="qf3-p1">B1</span><div class="score-container"><button class="score-btn minus" onclick="adjustScore('s-qf3-1', -1)">-</button><input type="number" class="score-input" id="s-qf3-1" value="0" min="0" max="30" oninput="handleInput()"><button class="score-btn" onclick="adjustScore('s-qf3-1', 1)">+</button></div></div><div class="team-slot"><span id="qf3-p2">A4</span><div class="score-container"><button class="score-btn minus" onclick="adjustScore('s-qf3-2', -1)">-</button><input type="number" class="score-input" id="s-qf3-2" value="0" min="0" max="30" oninput="handleInput()"><button class="score-btn" onclick="adjustScore('s-qf3-2', 1)">+</button></div></div></div>
-                    <div class="match-card" id="card-qf4"><div class="team-slot"><span id="qf4-p1">A2</span><div class="score-container"><button class="score-btn minus" onclick="adjustScore('s-qf4-1', -1)">-</button><input type="number" class="score-input" id="s-qf4-1" value="0" min="0" max="30" oninput="handleInput()"><button class="score-btn" onclick="adjustScore('s-qf4-1', 1)">+</button></div></div><div class="team-slot"><span id="qf4-p2">B3</span><div class="score-container"><button class="score-btn minus" onclick="adjustScore('s-qf4-2', -1)">-</button><input type="number" class="score-input" id="s-qf4-2" value="0" min="0" max="30" oninput="handleInput()"><button class="score-btn" onclick="adjustScore('s-qf4-2', 1)">+</button></div></div></div>
+                    <div class="match-card" id="card-qf1">
+                        <div class="team-slot">
+                            <span id="qf1-p1">A1</span>
+                            <div class="score-container">
+                                <button class="score-btn minus" onclick="adjustScore('s-qf1-1', -1)">-</button>
+                                <input type="number" class="score-input" id="s-qf1-1" value="0" min="0" max="30" oninput="handleInput()">
+                                <button class="score-btn" onclick="adjustScore('s-qf1-1', 1)">+</button>
+                            </div>
+                        </div>
+                        <div class="team-slot">
+                            <span id="qf1-p2">B4</span>
+                            <div class="score-container">
+                                <button class="score-btn minus" onclick="adjustScore('s-qf1-2', -1)">-</button>
+                                <input type="number" class="score-input" id="s-qf1-2" value="0" min="0" max="30" oninput="handleInput()">
+                                <button class="score-btn" onclick="adjustScore('s-qf1-2', 1)">+</button>
+                            </div>
+                        </div>
+                        <div class="support-container" data-match-id="qf1">
+                            <button class="support-button" id="support-qf1-1" onclick="adjustSupport('s-qf1-1', 1)">
+                                👍 <span class="support-count" id="count-s-qf1-1">0</span>
+                            </button>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar-team1" id="bar-s-qf1-1" style="width:0%;"></div>
+                                <div class="progress-bar-team2" id="bar-s-qf1-2" style="width:0%;"></div>
+                            </div>
+                            <button class="support-button" id="support-qf1-2" onclick="adjustSupport('s-qf1-2', 1)">
+                                👍 <span class="support-count" id="count-s-qf1-2">0</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="match-card" id="card-qf2">
+                        <div class="team-slot">
+                            <span id="qf2-p1">B2</span>
+                            <div class="score-container">
+                                <button class="score-btn minus" onclick="adjustScore('s-qf2-1', -1)">-</button>
+                                <input type="number" class="score-input" id="s-qf2-1" value="0" min="0" max="30" oninput="handleInput()">
+                                <button class="score-btn" onclick="adjustScore('s-qf2-1', 1)">+</button>
+                            </div>
+                        </div>
+                        <div class="team-slot">
+                            <span id="qf2-p2">A3</span>
+                            <div class="score-container">
+                                <button class="score-btn minus" onclick="adjustScore('s-qf2-2', -1)">-</button>
+                                <input type="number" class="score-input" id="s-qf2-2" value="0" min="0" max="30" oninput="handleInput()">
+                                <button class="score-btn" onclick="adjustScore('s-qf2-2', 1)">+</button>
+                            </div>
+                        </div>
+                        <div class="support-container" data-match-id="qf2">
+                            <button class="support-button" id="support-qf2-1" onclick="adjustSupport('s-qf2-1', 1)">
+                                👍 <span class="support-count" id="count-s-qf2-1">0</span>
+                            </button>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar-team1" id="bar-s-qf2-1" style="width:0%;"></div>
+                                <div class="progress-bar-team2" id="bar-s-qf2-2" style="width:0%;"></div>
+                            </div>
+                            <button class="support-button" id="support-qf2-2" onclick="adjustSupport('s-qf2-2', 1)">
+                                👍 <span class="support-count" id="count-s-qf2-2">0</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="match-card" id="card-qf3">
+                        <div class="team-slot">
+                            <span id="qf3-p1">B1</span>
+                            <div class="score-container">
+                                <button class="score-btn minus" onclick="adjustScore('s-qf3-1', -1)">-</button>
+                                <input type="number" class="score-input" id="s-qf3-1" value="0" min="0" max="30" oninput="handleInput()">
+                                <button class="score-btn" onclick="adjustScore('s-qf3-1', 1)">+</button>
+                            </div>
+                        </div>
+                        <div class="team-slot">
+                            <span id="qf3-p2">A4</span>
+                            <div class="score-container">
+                                <button class="score-btn minus" onclick="adjustScore('s-qf3-2', -1)">-</button>
+                                <input type="number" class="score-input" id="s-qf3-2" value="0" min="0" max="30" oninput="handleInput()">
+                                <button class="score-btn" onclick="adjustScore('s-qf3-2', 1)">+</button>
+                            </div>
+                        </div>
+                        <div class="support-container" data-match-id="qf3">
+                            <button class="support-button" id="support-qf3-1" onclick="adjustSupport('s-qf3-1', 1)">
+                                👍 <span class="support-count" id="count-s-qf3-1">0</span>
+                            </button>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar-team1" id="bar-s-qf3-1" style="width:0%;"></div>
+                                <div class="progress-bar-team2" id="bar-s-qf3-2" style="width:0%;"></div>
+                            </div>
+                            <button class="support-button" id="support-qf3-2" onclick="adjustSupport('s-qf3-2', 1)">
+                                👍 <span class="support-count" id="count-s-qf3-2">0</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="match-card" id="card-qf4">
+                        <div class="team-slot">
+                            <span id="qf4-p1">A2</span>
+                            <div class="score-container">
+                                <button class="score-btn minus" onclick="adjustScore('s-qf4-1', -1)">-</button>
+                                <input type="number" class="score-input" id="s-qf4-1" value="0" min="0" max="30" oninput="handleInput()">
+                                <button class="score-btn" onclick="adjustScore('s-qf4-1', 1)">+</button>
+                            </div>
+                        </div>
+                        <div class="team-slot">
+                            <span id="qf4-p2">B3</span>
+                            <div class="score-container">
+                                <button class="score-btn minus" onclick="adjustScore('s-qf4-2', -1)">-</button>
+                                <input type="number" class="score-input" id="s-qf4-2" value="0" min="0" max="30" oninput="handleInput()">
+                                <button class="score-btn" onclick="adjustScore('s-qf4-2', 1)">+</button>
+                            </div>
+                        </div>
+                        <div class="support-container" data-match-id="qf4">
+                            <button class="support-button" id="support-qf4-1" onclick="adjustSupport('s-qf4-1', 1)">
+                                👍 <span class="support-count" id="count-s-qf4-1">0</span>
+                            </button>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar-team1" id="bar-s-qf4-1" style="width:0%;"></div>
+                                <div class="progress-bar-team2" id="bar-s-qf4-2" style="width:0%;"></div>
+                            </div>
+                            <button class="support-button" id="support-qf4-2" onclick="adjustSupport('s-qf4-2', 1)">
+                                👍 <span class="support-count" id="count-s-qf4-2">0</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 <div class="round-column round-sf">
                     <div style="text-align:center;font-weight:bold;margin-bottom:10px;color:#aaa">半决赛</div>
-                    <div class="match-card" id="card-sf1"><div class="team-slot"><span id="sf1-p1">TBD</span><div class="score-container"><button class="score-btn minus" onclick="adjustScore('s-sf1-1', -1)">-</button><input type="number" class="score-input" id="s-sf1-1" value="0" min="0" max="30" oninput="handleInput()"><button class="score-btn" onclick="adjustScore('s-sf1-1', 1)">+</button></div></div><div class="team-slot"><span id="sf1-p2">TBD</span><div class="score-container"><button class="score-btn minus" onclick="adjustScore('s-sf1-2', -1)">-</button><input type="number" class="score-input" id="s-sf1-2" value="0" min="0" max="30" oninput="handleInput()"><button class="score-btn" onclick="adjustScore('s-sf1-2', 1)">+</button></div></div></div>
-                    <div class="match-card" id="card-sf2"><div class="team-slot"><span id="sf2-p1">TBD</span><div class="score-container"><button class="score-btn minus" onclick="adjustScore('s-sf2-1', -1)">-</button><input type="number" class="score-input" id="s-sf2-1" value="0" min="0" max="30" oninput="handleInput()"><button class="score-btn" onclick="adjustScore('s-sf2-1', 1)">+</button></div></div><div class="team-slot"><span id="sf2-p2">TBD</span><div class="score-container"><button class="score-btn minus" onclick="adjustScore('s-sf2-2', -1)">-</button><input type="number" class="score-input" id="s-sf2-2" value="0" min="0" max="30" oninput="handleInput()"><button class="score-btn" onclick="adjustScore('s-sf2-2', 1)">+</button></div></div></div>
+                    <div class="match-card" id="card-sf1">
+                        <div class="team-slot">
+                            <span id="sf1-p1">TBD</span>
+                            <div class="score-container">
+                                <button class="score-btn minus" onclick="adjustScore('s-sf1-1', -1)">-</button>
+                                <input type="number" class="score-input" id="s-sf1-1" value="0" min="0" max="30" oninput="handleInput()">
+                                <button class="score-btn" onclick="adjustScore('s-sf1-1', 1)">+</button>
+                            </div>
+                        </div>
+                        <div class="team-slot">
+                            <span id="sf1-p2">TBD</span>
+                            <div class="score-container">
+                                <button class="score-btn minus" onclick="adjustScore('s-sf1-2', -1)">-</button>
+                                <input type="number" class="score-input" id="s-sf1-2" value="0" min="0" max="30" oninput="handleInput()">
+                                <button class="score-btn" onclick="adjustScore('s-sf1-2', 1)">+</button>
+                            </div>
+                        </div>
+                        <div class="support-container" data-match-id="sf1">
+                            <button class="support-button" id="support-sf1-1" onclick="adjustSupport('s-sf1-1', 1)">
+                                👍 <span class="support-count" id="count-s-sf1-1">0</span>
+                            </button>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar-team1" id="bar-s-sf1-1" style="width:0%;"></div>
+                                <div class="progress-bar-team2" id="bar-s-sf1-2" style="width:0%;"></div>
+                            </div>
+                            <button class="support-button" id="support-sf1-2" onclick="adjustSupport('s-sf1-2', 1)">
+                                👍 <span class="support-count" id="count-s-sf1-2">0</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="match-card" id="card-sf2">
+                        <div class="team-slot">
+                            <span id="sf2-p1">TBD</span>
+                            <div class="score-container">
+                                <button class="score-btn minus" onclick="adjustScore('s-sf2-1', -1)">-</button>
+                                <input type="number" class="score-input" id="s-sf2-1" value="0" min="0" max="30" oninput="handleInput()">
+                                <button class="score-btn" onclick="adjustScore('s-sf2-1', 1)">+</button>
+                            </div>
+                        </div>
+                        <div class="team-slot">
+                            <span id="sf2-p2">TBD</span>
+                            <div class="score-container">
+                                <button class="score-btn minus" onclick="adjustScore('s-sf2-2', -1)">-</button>
+                                <input type="number" class="score-input" id="s-sf2-2" value="0" min="0" max="30" oninput="handleInput()">
+                                <button class="score-btn" onclick="adjustScore('s-sf2-2', 1)">+</button>
+                            </div>
+                        </div>
+                        <div class="support-container" data-match-id="sf2">
+                            <button class="support-button" id="support-sf2-1" onclick="adjustSupport('s-sf2-1', 1)">
+                                👍 <span class="support-count" id="count-s-sf2-1">0</span>
+                            </button>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar-team1" id="bar-s-sf2-1" style="width:0%;"></div>
+                                <div class="progress-bar-team2" id="bar-s-sf2-2" style="width:0%;"></div>
+                            </div>
+                            <button class="support-button" id="support-sf2-2" onclick="adjustSupport('s-sf2-2', 1)">
+                                👍 <span class="support-count" id="count-s-sf2-2">0</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 <div class="round-column round-final">
                     <div style="text-align:center;font-weight:bold;margin-bottom:10px;color:var(--gold)">👑 决赛</div>
-                    <div class="match-card" id="card-final"><div class="team-slot"><span id="final-p1">TBD</span><div class="score-container"><button class="score-btn minus" onclick="adjustScore('s-final-1', -1)">-</button><input type="number" class="score-input" id="s-final-1" value="0" min="0" max="30" oninput="handleInput()"><button class="score-btn" onclick="adjustScore('s-final-1', 1)">+</button></div></div><div class="team-slot"><span id="final-p2">TBD</span><div class="score-container"><button class="score-btn minus" onclick="adjustScore('s-final-2', -1)">-</button><input type="number" class="score-input" id="s-final-2" value="0" min="0" max="30" oninput="handleInput()"><button class="score-btn" onclick="adjustScore('s-final-2', 1)">+</button></div></div></div>
+                    <div class="match-card" id="card-final">
+                        <div class="team-slot">
+                            <span id="final-p1">TBD</span>
+                            <div class="score-container">
+                                <button class="score-btn minus" onclick="adjustScore('s-final-1', -1)">-</button>
+                                <input type="number" class="score-input" id="s-final-1" value="0" min="0" max="30" oninput="handleInput()">
+                                <button class="score-btn" onclick="adjustScore('s-final-1', 1)">+</button>
+                            </div>
+                        </div>
+                        <div class="team-slot">
+                            <span id="final-p2">TBD</span>
+                            <div class="score-container">
+                                <button class="score-btn minus" onclick="adjustScore('s-final-2', -1)">-</button>
+                                <input type="number" class="score-input" id="s-final-2" value="0" min="0" max="30" oninput="handleInput()">
+                                <button class="score-btn" onclick="adjustScore('s-final-2', 1)">+</button>
+                            </div>
+                        </div>
+                        <div class="support-container" data-match-id="final">
+                            <button class="support-button" id="support-final-1" onclick="adjustSupport('s-final-1', 1)">
+                                👍 <span class="support-count" id="count-s-final-1">0</span>
+                            </button>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar-team1" id="bar-s-final-1" style="width:0%;"></div>
+                                <div class="progress-bar-team2" id="bar-s-final-2" style="width:0%;"></div>
+                            </div>
+                            <button class="support-button" id="support-final-2" onclick="adjustSupport('s-final-2', 1)">
+                                👍 <span class="support-count" id="count-s-final-2">0</span>
+                            </button>
+                        </div>
+                    </div>
                     <div style="text-align:center;margin-top:15px;font-weight:bold;font-size:1.2rem;color:var(--primary)" id="champion-name">???</div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+    <div class="card" style="background:#fcebe1; border:1px solid #ff7675;">
+        <h3>🔑 管理员操作</h3>
+        <div style="display:flex; gap:10px; margin-bottom:10px; flex-wrap:wrap; justify-content:center;">
+            <input type="password" id="adminPassword" placeholder="输入重置密码" style="background:white; padding:8px; border:1px solid #ccc; border-radius:6px; min-width: 150px;">
+            <button onclick="resetScores()" style="background:#ff7675; color:white; padding:8px 15px; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">
+                重置所有分数 (0)
+            </button>
+            <button onclick="resetSupports()" style="background:#e84393; color:white; padding:8px 15px; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">
+                重置所有点赞数 (0)
+            </button>
+        </div>
+        <p style="text-align:center; font-size:0.8rem; color:#ff7675;" id="resetMessage"></p>
+    </div>
 
 <script>
     // ==========================================
@@ -304,6 +574,10 @@
     const SUPABASE_URL = 'https://qyhqntmubcdomzqxauhq.supabase.co'; // 例如：https://xxxx.supabase.co
     const SUPABASE_ANON_KEY = 'sb_publishable_6q04prRz0LnKGkZYuXjLQQ_At8W6P55'; 
     // ==========================================
+    // 🔒 管理员密码设置
+    // 建议在实际部署时使用更安全的验证机制
+    // ==========================================
+    const ADMIN_PASSWORD = '123'; // 请将 '123' 替换为您自己的密码
     
     // 初始化 Supabase 客户端（将在 init() 函数中根据配置初始化）
     let supabaseClient = null;
@@ -329,6 +603,51 @@
             ['t7','t12'], ['t8','t12'], ['t9','t11']
         ]
     };
+
+    /**
+     * 重置所有比赛的分数为 0
+     */
+    function resetScores() {
+        const password = document.getElementById('adminPassword').value;
+        const msgEl = document.getElementById('resetMessage');
+        msgEl.innerText = '';
+
+        if (password !== ADMIN_PASSWORD) {
+            msgEl.innerText = '错误：密码不正确，无法重置分数。';
+            return;
+        }
+
+        document.querySelectorAll('.score-input').forEach(el => {
+            el.value = 0;
+        });
+
+        handleInput(); 
+        msgEl.innerText = '✅ 所有比赛分数已重置为 0，数据已自动保存。';
+        document.getElementById('adminPassword').value = '';
+    }
+
+    /**
+     * 重置所有比赛的点赞数为 0
+     */
+    function resetSupports() {
+        const password = document.getElementById('adminPassword').value;
+        const msgEl = document.getElementById('resetMessage');
+        msgEl.innerText = '';
+
+        if (password !== ADMIN_PASSWORD) {
+            msgEl.innerText = '错误：密码不正确，无法重置点赞数。';
+            return;
+        }
+
+        document.querySelectorAll('.support-count').forEach(el => {
+            el.innerText = 0;
+        });
+
+        updateSupportBars();
+        handleInput(true);
+        msgEl.innerText = '✅ 所有点赞数已重置为 0，数据已自动保存。';
+        document.getElementById('adminPassword').value = '';
+    }
 
     function initRealtime() {
         if (!supabaseClient) {
@@ -388,6 +707,9 @@
 
         // 初始化实时监听
         initRealtime();
+
+        // 初始化支持条
+        updateSupportBars();
     }
 
     // 👇👇👇【新增】自动生成22张图的函数 👇👇👇
@@ -440,22 +762,35 @@
         ['A', 'B'].forEach(group => {
             const container = document.getElementById('matches'+group);
             schedules[group].forEach((m, idx) => {
-                const d = document.createElement('div');
-                d.className = 'match-row';
-                d.innerHTML = `
-                    <span class="team-name" id="name-${group}-${idx}-1">T</span>
-                    <div class="score-container">
-                        <button class="score-btn minus" onclick="adjustScore('s-${group}-${idx}-1', -1)">-</button>
-                        <input type="number" class="score-input" id="s-${group}-${idx}-1" value="0" min="0" max="30" oninput="handleInput()">
-                        <button class="score-btn" onclick="adjustScore('s-${group}-${idx}-1', 1)">+</button>
-                        <span class="score-separator">:</span>
-                        <button class="score-btn minus" onclick="adjustScore('s-${group}-${idx}-2', -1)">-</button>
-                        <input type="number" class="score-input" id="s-${group}-${idx}-2" value="0" min="0" max="30" oninput="handleInput()">
-                        <button class="score-btn" onclick="adjustScore('s-${group}-${idx}-2', 1)">+</button>
+                const wrapper = document.createElement('div');
+                wrapper.innerHTML = `
+                    <div class="match-row">
+                        <span class="team-name" id="name-${group}-${idx}-1">T</span>
+                        <div class="score-container">
+                            <button class="score-btn minus" onclick="adjustScore('s-${group}-${idx}-1', -1)">-</button>
+                            <input type="number" class="score-input" id="s-${group}-${idx}-1" value="0" min="0" max="30" oninput="handleInput()">
+                            <button class="score-btn" onclick="adjustScore('s-${group}-${idx}-1', 1)">+</button>
+                            <span class="score-separator">:</span>
+                            <button class="score-btn minus" onclick="adjustScore('s-${group}-${idx}-2', -1)">-</button>
+                            <input type="number" class="score-input" id="s-${group}-${idx}-2" value="0" min="0" max="30" oninput="handleInput()">
+                            <button class="score-btn" onclick="adjustScore('s-${group}-${idx}-2', 1)">+</button>
+                        </div>
+                        <span class="team-name" id="name-${group}-${idx}-2">T</span>
                     </div>
-                    <span class="team-name" id="name-${group}-${idx}-2">T</span>
+                    <div class="support-container" data-match-id="${group}-${idx}">
+                        <button class="support-button" id="support-${group}-${idx}-1" onclick="adjustSupport('s-${group}-${idx}-1', 1)">
+                            👍 <span class="support-count" id="count-s-${group}-${idx}-1">0</span>
+                        </button>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar-team1" id="bar-s-${group}-${idx}-1" style="width:0%;"></div>
+                            <div class="progress-bar-team2" id="bar-s-${group}-${idx}-2" style="width:0%;"></div>
+                        </div>
+                        <button class="support-button" id="support-${group}-${idx}-2" onclick="adjustSupport('s-${group}-${idx}-2', 1)">
+                            👍 <span class="support-count" id="count-s-${group}-${idx}-2">0</span>
+                        </button>
+                    </div>
                 `;
-                container.appendChild(d);
+                container.appendChild(wrapper);
             });
         });
     }
@@ -525,7 +860,7 @@
     }
 
     function collectDataFromUI() {
-        const data = { names: {}, scores: {}, slides: {} };
+        const data = { names: {}, scores: {}, slides: {}, support: {} };
         // 分组队伍名称
         for(let i=1; i<=12; i++) { const el = document.getElementById('t'+i); if(el) data.names['t'+i] = el.value; }
         // 轮播姓名和口号
@@ -539,8 +874,19 @@
                 };
             }
         }
-        // 比分
-        document.querySelectorAll('.score-input').forEach(el => { if(el.value) data.scores[el.id] = el.value; });
+        // 比分：即使为 0 也要收集
+        document.querySelectorAll('.score-input').forEach(el => { 
+            data.scores[el.id] = parseInt(el.value) || 0; 
+        });
+        // 点赞数：确保重置后的 0 也被收集
+        document.querySelectorAll('.support-button').forEach(btn => {
+            const idParts = btn.id.split('-');
+            if (idParts.length >= 4) {
+                const supportKey = `s-${idParts[1]}-${idParts[2]}-${idParts[3]}`;
+                const countEl = document.getElementById('count-' + supportKey);
+                data.support[supportKey] = parseInt(countEl?.innerText) || 0;
+            }
+        });
         return data;
     }
 
@@ -562,6 +908,16 @@
                 if(sloganEl) sloganEl.value = info.slogan || '';
             }
         }
+        // 点赞数
+        if(data.support) {
+            for(let k in data.support) {
+                const countEl = document.getElementById('count-' + k);
+                if(countEl) {
+                    countEl.innerText = data.support[k] || 0;
+                }
+            }
+        }
+        updateSupportBars();
     }
 
     /**
@@ -594,18 +950,72 @@
         handleInput();
     }
 
-    let debounceTimer;
-    function handleInput() {
-        // 验证所有分数输入框，限制在 0-30
-        document.querySelectorAll('.score-input').forEach(input => {
-            const value = parseInt(input.value) || 0;
-            if(value < 0) input.value = 0;
-            if(value > 30) input.value = 30;
-        });
+    /**
+     * 根据按钮点击，安全地调整点赞数并自动保存
+     * @param {string} idPrefix - 点赞数元素的 ID 前缀，例如 's-A-0-1'
+     * @param {number} delta - 调整的值，目前只有 +1
+     */
+    function adjustSupport(idPrefix, delta) {
+        const countEl = document.getElementById('count-' + idPrefix);
+        if (!countEl) return;
 
-        updateAll(); // 立即本地计算
+        let currentValue = parseInt(countEl.innerText) || 0;
+        let newValue = currentValue + delta;
+
+        if (newValue < 0) newValue = 0;
+
+        countEl.innerText = newValue;
+        updateSupportBars();
+        handleInput(true); // 仅保存
+    }
+
+    /**
+     * 更新所有比赛的支持条显示
+     */
+    function updateSupportBars() {
+        document.querySelectorAll('.support-container').forEach(container => {
+            const matchId = container.dataset.matchId;
+            if (!matchId) return;
+
+            const id1 = `count-s-${matchId}-1`;
+            const id2 = `count-s-${matchId}-2`;
+
+            const count1 = parseInt(document.getElementById(id1)?.innerText) || 0;
+            const count2 = parseInt(document.getElementById(id2)?.innerText) || 0;
+            const total = count1 + count2;
+
+            const bar1 = document.getElementById(`bar-s-${matchId}-1`);
+            const bar2 = document.getElementById(`bar-s-${matchId}-2`);
+
+            if (total === 0) {
+                if(bar1) bar1.style.width = '0%';
+                if(bar2) bar2.style.width = '0%';
+                container.style.backgroundColor = '#dfe6e9';
+            } else {
+                const ratio1 = (count1 / total) * 100;
+                const ratio2 = 100 - ratio1;
+
+                if(bar1) bar1.style.width = `${ratio1.toFixed(2)}%`;
+                if(bar2) bar2.style.width = `${ratio2.toFixed(2)}%`;
+                container.style.backgroundColor = '#f7f7f7';
+            }
+        });
+    }
+
+    let debounceTimer;
+    function handleInput(onlySave = false) {
+        if (!onlySave) {
+            // 验证所有分数输入框，限制在 0-30
+            document.querySelectorAll('.score-input').forEach(input => {
+                const value = parseInt(input.value) || 0;
+                if(value < 0) input.value = 0;
+                if(value > 30) input.value = 30;
+            });
+
+            updateAll(); // 立即本地计算
+        }
+
         clearTimeout(debounceTimer);
-        // 输入停止2秒后自动保存到云端
         debounceTimer = setTimeout(() => { pushData(); }, 2000);
     }
 
