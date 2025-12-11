@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>羽毛球冠军赛</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --primary: #00b894; --primary-dark: #00a884; --accent: #0984e3; --gold: #fdcb6e;
@@ -222,8 +223,8 @@
         
         <div style="background:#ff7675; padding:10px; border-radius:8px; color:white; margin-bottom:10px; display:none;" id="configBox">
             <h3>⚠️ 首次配置</h3>
-            <input type="text" id="binId" placeholder="输入 JsonBin BIN ID" style="background:white; padding:5px; margin:5px 0;">
-            <input type="text" id="apiKey" placeholder="输入 JsonBin API Key" style="background:white; padding:5px; margin:5px 0;">
+            <input type="text" id="supabaseUrl" placeholder="输入 Supabase URL" style="background:white; padding:5px; margin:5px 0; width:100%;">
+            <input type="text" id="supabaseKey" placeholder="输入 Supabase Anon Key" style="background:white; padding:5px; margin:5px 0; width:100%;">
             <button onclick="saveConfig()">保存配置</button>
         </div>
     </div>
@@ -275,11 +276,14 @@
 
 <script>
     // ==========================================
-    // 🔴 在这里填入你的 JsonBin 信息
+    // 🟢 在这里填入你的 Supabase 信息
     // ==========================================
-    let BIN_ID = '69396050ae596e708f9011c8'; 
-    let API_KEY = '$2a$10$HJ5TU53qmIgDkP2Zv/o68OJ5M0Bo91u8BQt51q5hAv7kDh2On5Exq'; 
+    const SUPABASE_URL = 'https://qyhqntmubcdomzqxauhq.supabase.co'; // 例如：https://xxxx.supabase.co
+    const SUPABASE_ANON_KEY = 'sb_publishable_6q04prRz0LnKGkZYuXjLQQ_At8W6P55'; 
     // ==========================================
+    
+    // 初始化 Supabase 客户端（将在 init() 函数中根据配置初始化）
+    let supabaseClient = null;
 
     let teams = {};
     let lastRemoteData = null;
@@ -289,19 +293,64 @@
         'B': [['t6','t7'], ['t8','t9'], ['t6','t10'], ['t7','t8'], ['t9','t10'], ['t6','t8'], ['t7','t9'], ['t8','t10'], ['t6','t9'], ['t7','t10']]
     };
 
+    function initRealtime() {
+        if (!supabaseClient) {
+            console.error("Supabase 客户端未初始化，无法启用实时监听");
+            return;
+        }
+
+        supabaseClient
+            .channel('schema-changes') // 随便取个名字
+            .on(
+                'postgres_changes',
+                { event: 'UPDATE', schema: 'public', table: 'badminton_data', filter: 'id=eq.1' },
+                (payload) => {
+                    console.log('Realtime update received!', payload);
+                    // 收到更新通知，自动应用数据到 UI
+                    const remoteData = payload.new.data;
+                    lastRemoteData = remoteData;
+                    applyDataToUI(remoteData);
+                    updateAll();
+                    document.getElementById('refreshText').innerText = "实时更新!";
+                    setTimeout(() => { document.getElementById('refreshText').innerText = "刷新数据"; }, 1000);
+                }
+            )
+            .subscribe();
+    }
+
     function init() {
         // 1. 【新增】先生成21张轮播图
         renderSlider();
         
-        const localConfig = localStorage.getItem('img_config');
-        if(localConfig) { const c = JSON.parse(localConfig); BIN_ID = c.binId; API_KEY = c.apiKey; }
+        // 检查是否有本地保存的 Supabase 配置
+        const localConfig = localStorage.getItem('supabase_config');
+        let currentSupabaseUrl = SUPABASE_URL;
+        let currentSupabaseKey = SUPABASE_ANON_KEY;
+        
+        if(localConfig) { 
+            const c = JSON.parse(localConfig); 
+            currentSupabaseUrl = c.supabaseUrl || SUPABASE_URL;
+            currentSupabaseKey = c.supabaseKey || SUPABASE_ANON_KEY;
+        }
 
-        if(!BIN_ID || !API_KEY) { document.getElementById('configBox').style.display = 'block'; return; }
+        // 如果没有配置，显示配置框
+        if(!currentSupabaseUrl || !currentSupabaseKey || 
+           currentSupabaseUrl === 'YOUR_SUPABASE_URL' || 
+           currentSupabaseKey === 'YOUR_ANON_PUBLIC_KEY') { 
+            document.getElementById('configBox').style.display = 'block'; 
+            return; 
+        }
+
+        // 初始化 Supabase 客户端
+        supabaseClient = supabase.createClient(currentSupabaseUrl, currentSupabaseKey);
 
         createInputs();
         
         // 初始化时，只拉取一次
         manualRefresh(); 
+
+        // 初始化实时监听
+        initRealtime();
     }
 
     // 👇👇👇【新增】自动生成21张图的函数 👇👇👇
@@ -332,9 +381,12 @@
     // 👆👆👆 新增结束 👆👆👆
 
     function saveConfig() {
-        const bid = document.getElementById('binId').value;
-        const key = document.getElementById('apiKey').value;
-        if(bid && key) { localStorage.setItem('img_config', JSON.stringify({binId: bid, apiKey: key})); location.reload(); }
+        const url = document.getElementById('supabaseUrl').value;
+        const key = document.getElementById('supabaseKey').value;
+        if(url && key) { 
+            localStorage.setItem('supabase_config', JSON.stringify({supabaseUrl: url, supabaseKey: key})); 
+            location.reload(); 
+        }
     }
 
     function createInputs() {
@@ -370,46 +422,62 @@
         const icon = document.getElementById('refreshIcon');
         const text = document.getElementById('refreshText');
         
-        // 按钮变态
         btn.classList.add('loading');
         icon.classList.add('icon-spin');
         text.innerText = "获取中...";
 
         try {
-            const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, { headers: { 'X-Master-Key': API_KEY } });
-            if(res.ok) {
-                const json = await res.json();
-                const data = json.record;
-                // 强制更新UI
-                lastRemoteData = data;
-                applyDataToUI(data);
-                updateAll();
-                text.innerText = "刷新成功";
-                setTimeout(() => { text.innerText = "刷新数据"; }, 1000);
-            } else {
-                text.innerText = "刷新失败";
+            if (!supabaseClient) {
+                text.innerText = "未配置 Supabase";
+                return;
             }
+
+            // 🚀 使用 Supabase 查询，从 badminton_data 表中选择 data 列，id = 1
+            const { data, error } = await supabaseClient
+                .from('badminton_data') 
+                .select('data')
+                .eq('id', 1) // 我们只取 id 为 1 的那一行
+                .single(); // 只返回一个对象
+
+            if (error) throw error;
+            
+            // 强制更新UI
+            const remoteData = data.data; // 注意：取到的是 data 字段里的内容
+            lastRemoteData = remoteData;
+            applyDataToUI(remoteData);
+            updateAll();
+            text.innerText = "刷新成功";
+            setTimeout(() => { text.innerText = "刷新数据"; }, 1000);
+            
         } catch(e) { 
-            console.error(e); 
-            text.innerText = "网络错误";
+            console.error("Supabase 读取失败:", e); 
+            text.innerText = "刷新失败";
         } finally {
-            // 恢复按钮
             btn.classList.remove('loading');
             icon.classList.remove('icon-spin');
         }
     }
 
     async function pushData() {
-        // 上传时，不需要旋转按钮，静默上传即可，或者可以在右上角给个小提示，这里保持简单
-        const data = collectDataFromUI();
+        if (!supabaseClient) {
+            console.error("Supabase 未配置");
+            return;
+        }
+
+        const uiData = collectDataFromUI();
         try {
-            await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY },
-                body: JSON.stringify(data)
-            });
-            lastRemoteData = data;
-        } catch(e) { console.error("Auto save failed", e); }
+            // 🚀 使用 Supabase 更新，更新 id = 1 的那一行
+            const { error } = await supabaseClient
+                .from('badminton_data')
+                .update({ data: uiData }) // 将收集到的数据对象写入到 data 字段
+                .eq('id', 1); // 确保只更新 id 为 1 的行
+                
+            if (error) throw error;
+            lastRemoteData = uiData;
+            console.log("Supabase 自动保存成功");
+        } catch(e) { 
+            console.error("Supabase 自动保存失败", e); 
+        }
     }
 
     function collectDataFromUI() {
@@ -595,3 +663,7 @@
 </script>
 </body>
 </html>
+
+
+
+
