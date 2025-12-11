@@ -360,7 +360,7 @@
         
         // 🔄 这里的 21 代表你有21张图
         // 如果以后变成30张，把 21 改成 30 就行了
-        for(let i=1; i<=22; i++) {
+        for(let i=1; i<=26; i++) {
             html += `
             <div class="slider-item">
                 <img src="${i}.jpg" alt="选手${i}" loading="lazy">
@@ -483,9 +483,9 @@
     function collectDataFromUI() {
         const data = { names: {}, scores: {}, slides: {} };
         // 分组队伍名称
-        for(let i=1; i<=10; i++) { const el = document.getElementById('t'+i); if(el) data.names['t'+i] = el.value; }
+        for(let i=1; i<=12; i++) { const el = document.getElementById('t'+i); if(el) data.names['t'+i] = el.value; }
         // 轮播姓名和口号
-        for(let i=1; i<=22; i++) {
+        for(let i=1; i<=26; i++) {
             const nameEl = document.getElementById(`slide-name-${i}`);
             const sloganEl = document.getElementById(`slide-slogan-${i}`);
             if(nameEl || sloganEl) {
@@ -509,7 +509,7 @@
         }
         // 回填轮播姓名/口号
         if(data.slides) {
-            for(let i=1; i<=22; i++) {
+            for(let i=1; i<=26; i++) {
                 const info = data.slides['slide-'+i];
                 if(!info) continue;
                 const nameEl = document.getElementById(`slide-name-${i}`);
@@ -663,6 +663,7 @@
 </script>
 </body>
 </html>
+
 
 
 
